@@ -1,13 +1,13 @@
 import os
-from flask import Flask, flash, request, redirect, url_for, send_from_directory
+from flask import Flask, flash, request, redirect, url_for, send_from_directory, render_template
 from werkzeug.utils import secure_filename
 
 from steg import *
 app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = 'uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
     return True #allow all for now
     #return '.' in filename and \
@@ -15,11 +15,13 @@ def allowed_file(filename):
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
-                               filename)           
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)           
 
+@app.route('/', methods=['GET', 'POST'])
 @app.route('/steg', methods=['GET', 'POST'])
 def steg():
+    embedding_stride = 1
+    embedding_bits_used_per_byte = 2
     if request.method == 'POST':
         # check if the post request has the file part
         if 'cover_img' not in request.files or 'msg_img' not in request.files:
@@ -44,24 +46,18 @@ def steg():
                 msg_img = f.read()
             img = Image(cover_img)
             num_bytes_written = len(msg_img)
-            img.write_bytes(msg_img, num_writeable_bits=2, stride=1)
+            img.write_bytes(msg_img, num_writeable_bits=embedding_bits_used_per_byte, stride=embedding_stride)
             saved_name = f"secret_embdedded_{num_bytes_written}_bytes_{cover_img_name}"
             saved_name = ".".join(saved_name.split('.')[:-1]) + ".png"
             cv.imwrite( os.path.join(app.config['UPLOAD_FOLDER'], saved_name), img.img_arr)
-            return redirect(url_for('uploaded_file',
-                                    filename=saved_name))
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Choose an image and a file to embed.</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=cover_img>
-      <input type=file name=msg_img>
-      <input type=submit value=Upload>
-    </form>
-    '''
+            return render_template("image_embedding_processed.html", file_path = url_for('uploaded_file', filename=saved_name), embedding_num_bytes = num_bytes_written, embedding_stride = embedding_stride, embedding_bits_used_per_byte = embedding_bits_used_per_byte)
+            # return redirect(url_for('uploaded_file', filename=saved_name))
+    return render_template("steg.html")
+
 @app.route('/unsteg', methods=['GET', 'POST'])
 def unsteg():
+    embedding_stride = 1
+    embedding_bits_used_per_byte = 2    
     if request.method == 'POST':
         # check if the post request has the file part
         if 'secret_msg_img' not in request.files:
@@ -80,20 +76,10 @@ def unsteg():
 
             img = cv.imread( os.path.join(app.config['UPLOAD_FOLDER'], secret_msg_img_name) )
             img = Image(img)
-            inner_img = img.read_bytes(num_bytes_to_read = num_bytes_stored, num_writeable_bits = 2, stride = 1)
+            inner_img = img.read_bytes(num_bytes_to_read = num_bytes_stored, num_writeable_bits = embedding_bits_used_per_byte, stride = embedding_stride)
             saved_name = "hidden_message"
             with open(os.path.join(app.config['UPLOAD_FOLDER'], saved_name), 'wb') as f:
                 f.write(inner_img)
             return redirect(url_for('uploaded_file',
                                     filename=saved_name))
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload an image that contains a secret embedded file</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=secret_msg_img>
-      Enter the number of bytes that the embedded file takes up: 
-      <input type=number name=num_bytes_stored>
-      <input type=submit value=Upload>
-    </form>
-    '''
+    return render_template("unsteg.html")

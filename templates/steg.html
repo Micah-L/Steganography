@@ -1,10 +1,15 @@
 {% extends 'steg_base.html' %}
 {% block content %}
-<title>Upload new File</title>
+<h1> Steganography </h1>
+<p> Steganography is the art of hiding data inside of other media. This app allows the embedding of arbitrary files inside of pictures. It is done by modifying the least significant bits of the image. With the current default settings, 2 bits of each byte are used. Hence the maximum filesize that may be embedded in an image is 1/4 of the product of its dimensions. For example, an RGB image of size 1024x800 could fit (1024*800*3)/4 = 614,400 bytes. (Times three for three channels R, G, and B.) If the image is 1024x800 grayscale, it can hold only a third as many bytes. If the image has an additional transparency channel, it can hold more data. The image should be saved as a non-lossy format such as png. If it is converted to jpg or otherwise compressed, data will be lost. </p>
 <h1>Choose an image and a file to embed</h1>
+
 <form method="post" enctype="multipart/form-data">
+    <p> Image to act as a carrier: </p>
     <input type="file" name="cover_img">
+    <p> File to embed: </p>
     <input type="file" name="msg_img">
+    <p></p>
     <input type="submit" value="Upload">
 </form>
 {% endblock %}
