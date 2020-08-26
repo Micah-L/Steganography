@@ -1,0 +1,10 @@
+{% extends 'steg_base.html' %}
+{% block content %}
+<h1>Upload an image that contains a secret embedded file</h1>
+<form method="post" enctype="multipart/form-data">
+  <input type="file" name="secret_msg_img">
+  <p> Enter the number of bytes embedded in the image: </p>
+  <input type="number" name="num_bytes_stored">
+  <input type="submit" value="Upload">
+</form>
+{% endblock %}

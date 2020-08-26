@@ -1,0 +1,10 @@
+{% extends 'steg_base.html' %}
+{% block content %}
+<title>Upload new File</title>
+<h1>Choose an image and a file to embed</h1>
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="cover_img">
+    <input type="file" name="msg_img">
+    <input type="submit" value="Upload">
+</form>
+{% endblock %}

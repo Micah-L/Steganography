@@ -1,0 +1,13 @@
+{% extends 'steg_base.html' %}
+
+{% block content %}
+<h1> Click the button to download the image with the message embedded. </h1>
+<a href="{{ file_path }}" download> <button type="button">Download</button></a>
+
+<h1>To recover the embedded message you will need to remember the following data: </h1>
+<ul>
+  <li>Number of bytes embedded: {{ embedding_num_bytes }}</li>
+  <li>Stride of embedding: {{ embedding_stride }} </li>
+  <li>Number of bits used per byte: {{ embedding_bits_used_per_byte }} </li>
+</ul>
+{% endblock %}
